@@ -16,3 +16,10 @@ Health:
 - http://127.0.0.1:8000/health
 Docs:
 - http://127.0.0.1:8000/docs
+
+## Run frontend
+
+```bash
+cd frontend
+npm install
+npm run dev

@@ -1,4 +1,5 @@
 ﻿from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.db import create_tables
 
@@ -28,3 +29,12 @@ app.include_router(catalog_router, prefix="/catalog", tags=["catalog"])
 app.include_router(warehouse_router, prefix="/warehouse", tags=["warehouse"])
 app.include_router(sales_router, prefix="/sales", tags=["sales"])
 app.include_router(crm_router, prefix="/crm", tags=["crm"])
+
+# разрешаем запросы с localhost:3000
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
