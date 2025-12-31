@@ -1,10 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactCompiler: true,
   async rewrites() {
     return [
-      { source: "/api/:path*", destination: "http://127.0.0.1:8000/:path*" },
+      {
+        source: '/api/:path*',
+        destination: 'http://127.0.0.1:8000/:path*', // адрес FastAPI
+      },
     ];
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
