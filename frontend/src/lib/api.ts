@@ -1,3 +1,9 @@
+type ApiError = {
+  status: number;
+  message: string;
+  body?: string;
+};
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...options,
@@ -9,8 +15,17 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
+    const contentType = res.headers.get("content-type") || "";
+    const body = await res.text();
+
+    // если пришёл HTML (страница Next 404) — показываем нормальное сообщение
+    const msg =
+      contentType.includes("text/html")
+        ? `API error ${res.status}. Проверь proxy/rewrites (/api -> backend).`
+        : body || `HTTP ${res.status}`;
+
+    const err: ApiError = { status: res.status, message: msg, body };
+    throw new Error(JSON.stringify(err, null, 2));
   }
 
   if (res.status === 204) return undefined as T;
@@ -19,17 +34,23 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   // Products
-  listProducts: () => request<Array<{ id: number; name: string; sku: string | null }>>(`/catalog/products`),
+  listProducts: () =>
+    request<Array<{ id: number; name: string; sku: string | null }>>(`/catalog/products`),
+
   createProduct: (body: { name: string; sku?: string | null }) =>
     request(`/catalog/products`, { method: "POST", body: JSON.stringify(body) }),
 
   // Warehouses
-  listWarehouses: () => request<Array<{ id: number; name: string }>>(`/warehouse/warehouses`),
+  listWarehouses: () =>
+    request<Array<{ id: number; name: string }>>(`/warehouse/warehouses`),
+
   createWarehouse: (body: { name: string }) =>
     request(`/warehouse/warehouses`, { method: "POST", body: JSON.stringify(body) }),
 
   // Customers
-  listCustomers: () => request<Array<{ id: number; name: string; phone: string | null }>>(`/crm/customers`),
+  listCustomers: () =>
+    request<Array<{ id: number; name: string; phone: string | null }>>(`/crm/customers`),
+
   createCustomer: (body: { name: string; phone?: string | null }) =>
     request(`/crm/customers`, { method: "POST", body: JSON.stringify(body) }),
 
@@ -45,5 +66,6 @@ export const api = {
   }) => request(`/sales/sales`, { method: "POST", body: JSON.stringify(body) }),
 
   // Stock
-  listStock: () => request<Array<{ product_id: number; warehouse_id: number; qty: number }>>(`/warehouse/stock`),
+  listStock: () =>
+    request<Array<{ product_id: number; warehouse_id: number; qty: number }>>(`/warehouse/stock`),
 };
